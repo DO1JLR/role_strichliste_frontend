@@ -1,0 +1,43 @@
+---
+
+- name: install requirements for strichliste frontend
+  become: true
+  package:
+    name:
+      - git
+      - npm
+    state: present
+
+- name: install yarn
+  become: true
+  command: "npm install -g yarn"
+
+- name: clone strichliste frontend
+  become: true
+  git:
+    repo: https://github.com/strichliste/strichliste-web-frontend.git
+    dest: /opt/strichliste-frontend
+    clone: yes
+    update: yes
+    version: master
+
+- name: mach mal yarn dinge (shell und so)
+  become: true
+  command: "yarn install"
+  args:
+    chdir: /opt/strichliste-frontend
+
+- name: yarn build
+  become: true
+  command: "yarn build"
+  args:
+    chdir: /opt/strichliste-frontend
+    creates: /opt/strichliste-frontend/dist    
+
+- name: copy frontend to his location
+  become: true
+  synchronize:
+    src: /opt/strichliste-frontend/build/
+    dest: /opt/strichliste2-backend/public/
+  delegate_to: "{{ inventory_hostname }}"
+
